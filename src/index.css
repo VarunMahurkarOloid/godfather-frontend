@@ -1,0 +1,263 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root Variables for Themes */
+:root {
+  --font-base: 1.125rem; /* 18px - Increased from default 16px */
+  --font-lg: 1.25rem; /* 20px */
+  --font-xl: 1.5rem; /* 24px */
+  --font-2xl: 1.875rem; /* 30px */
+  --font-3xl: 2.25rem; /* 36px */
+}
+
+/* Mobile-specific font sizes */
+@media (max-width: 640px) {
+  :root {
+    --font-base: 0.875rem; /* 14px */
+    --font-lg: 1rem; /* 16px */
+    --font-xl: 1.125rem; /* 18px */
+    --font-2xl: 1.25rem; /* 20px */
+    --font-3xl: 1.5rem; /* 24px */
+  }
+}
+
+/* Dark Theme (Default) */
+.dark, :root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: #FFD700;
+  --text-secondary: #D4AF37;
+  --text-light: #FFFFFF;
+  --accent-primary: #8B0000;
+  --accent-secondary: #DC143C;
+  --border-color: #8B0000;
+  --shadow-color: rgba(139, 0, 0, 0.3);
+  --success-bg: rgba(34, 197, 94, 0.2);
+  --success-text: #86efac;
+  --error-bg: rgba(239, 68, 68, 0.2);
+  --error-text: #fca5a5;
+}
+
+/* Light Theme */
+.light {
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5e5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-light: #2a2a2a;
+  --accent-primary: #8B0000;
+  --accent-secondary: #DC143C;
+  --border-color: #D4AF37;
+  --shadow-color: rgba(212, 175, 55, 0.3);
+  --success-bg: rgba(34, 197, 94, 0.2);
+  --success-text: #15803d;
+  --error-bg: rgba(239, 68, 68, 0.2);
+  --error-text: #dc2626;
+}
+
+html {
+  font-size: var(--font-base);
+}
+
+body {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.mafia-title {
+  font-family: 'Cinzel Decorative', serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.smoke-effect {
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-primary) 100%);
+}
+
+.card-mafia {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border: 2px solid var(--border-color);
+  box-shadow: 0 4px 6px var(--shadow-color);
+  font-size: var(--font-lg);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .card-mafia {
+    padding: 1rem;
+    border-width: 1px;
+  }
+}
+
+.card-mafia:hover {
+  border-color: var(--text-primary);
+  box-shadow: 0 6px 12px var(--shadow-color);
+  transform: translateY(-2px);
+}
+
+.btn-mafia {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: var(--font-lg);
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.btn-mafia:hover {
+  background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.btn-mafia:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-mafia {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: var(--font-lg);
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-mafia:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 10px var(--shadow-color);
+}
+
+.input-mafia::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.badge-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFF4CC 100%);
+  color: #0a0a0a;
+  font-weight: bold;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.badge-red {
+  background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+  color: #FFD700;
+  font-weight: bold;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.progress-bar {
+  background: #1a1a1a;
+  border: 1px solid #8B0000;
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #8B0000 0%, #FFD700 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.loading-spinner {
+  border: 4px solid #1a1a1a;
+  border-top: 4px solid #FFD700;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile Optimization */
+@media (max-width: 640px) {
+  /* Reduce spacing on mobile */
+  .mobile-px-reduced {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .mobile-py-reduced {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  /* Make tables scrollable */
+  .mobile-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Adjust button sizes */
+  .btn-mafia {
+    font-size: var(--font-base);
+    padding: 0.5rem 1rem;
+  }
+
+  /* Adjust input sizes */
+  .input-mafia {
+    font-size: var(--font-base);
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Stack grid columns on mobile */
+  .mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce title sizes on mobile */
+  .mafia-title {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Hide on mobile */
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  /* Show only on mobile */
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+/* Hide only on mobile (show on desktop) */
+@media (min-width: 641px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
