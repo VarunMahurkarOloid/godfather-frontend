@@ -6,6 +6,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',  // Required for ngrok-free plan
   },
 });
 
@@ -108,6 +109,9 @@ export const familyAPI = {
 
 // Admin APIs
 export const adminAPI = {
+  getAllPlayers: () =>
+    api.get('/admin/players'),
+
   updateMoney: (playerId, amount, reason = null) =>
     api.post('/admin/update-money', { player_id: playerId, amount, reason }),
 

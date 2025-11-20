@@ -37,3 +37,5 @@ lerna-debug.log*
 
 # Local environment variables (keep .env.example)
 .env
+
+.vercel

@@ -35,7 +35,7 @@ function Login({ onLogin }) {
 
     try {
       const response = await authAPI.login(email, password, selectedRole);
-      const { access_token, player, is_first_login, assigned_role } = response.data;
+      const { access_token, refresh_token, player, is_first_login, assigned_role } = response.data;
 
       if (is_first_login) {
         // First time login - verify role matches
@@ -46,8 +46,9 @@ function Login({ onLogin }) {
         }
       }
 
-      // Successful login
+      // Successful login - store both access and refresh tokens
       localStorage.setItem('token', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('player', JSON.stringify(player));
 
       // Store credentials for auto-login (Note: This is for convenience in internal game environment)

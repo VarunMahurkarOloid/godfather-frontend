@@ -49,7 +49,7 @@ function Admin() {
 
   const fetchPlayers = async () => {
     try {
-      const response = await playerAPI.getAllPlayers();
+      const response = await adminAPI.getAllPlayers();
       setPlayers(response.data);
     } catch (error) {
       console.error('Error fetching players:', error);
