@@ -5,8 +5,8 @@ import Dashboard from './pages/Dashboard';
 import Missions from './pages/Missions';
 import Trade from './pages/Trade';
 import Leaderboard from './pages/Leaderboard';
-import FamilyNew from './pages/FamilyNew';
-import AdminNew from './pages/AdminNew';
+import Family from './pages/Family';
+import Admin from './pages/Admin';
 import Navbar from './components/Navbar';
 import { authAPI } from './services/api';
 
@@ -164,7 +164,7 @@ function App() {
             path="/family"
             element={
               isAuthenticated ? (
-                <FamilyNew />
+                <Family />
               ) : (
                 <Navigate to="/login" replace />
               )
@@ -175,7 +175,7 @@ function App() {
             path="/admin"
             element={
               isAuthenticated && isAdmin ? (
-                <AdminNew />
+                <Admin />
               ) : (
                 <Navigate to="/" replace />
               )
