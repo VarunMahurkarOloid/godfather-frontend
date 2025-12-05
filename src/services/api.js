@@ -64,8 +64,8 @@ export const missionAPI = {
   getTodayMissions: () =>
     api.get('/missions/today'),
 
-  getAllMissions: (day = null) =>
-    api.get('/missions/all', { params: { day } }),
+  getAllMissions: (day = null, allDays = false) =>
+    api.get('/missions/all', { params: { day, all_days: allDays } }),
 
   getMission: (missionId) =>
     api.get(`/missions/${missionId}`),

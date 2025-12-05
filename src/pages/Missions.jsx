@@ -3,9 +3,9 @@ import { missionAPI } from '../services/api';
 
 function Missions() {
   const [missions, setMissions] = useState([]);
-  const [missionsData, setMissionsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedMission, setSelectedMission] = useState(null);
+  const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
     fetchMissions();
@@ -13,13 +13,36 @@ function Missions() {
 
   const fetchMissions = async () => {
     try {
-      const response = await missionAPI.getTodayMissions();
-      setMissionsData(response.data);
+      // Fetch ALL missions from spreadsheet (no day filtering)
+      const response = await missionAPI.getAllMissions(null, true);
       setMissions(response.data.missions || []);
     } catch (error) {
       console.error('Error fetching missions:', error);
+      setMissions([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getSortedMissions = () => {
+    if (!missions || missions.length === 0) return [];
+
+    const sortedMissions = [...missions];
+
+    switch (sortBy) {
+      case 'high-to-low':
+        return sortedMissions.sort((a, b) => (b.reward_md || 0) - (a.reward_md || 0));
+      case 'low-to-high':
+        return sortedMissions.sort((a, b) => (a.reward_md || 0) - (b.reward_md || 0));
+      case 'type':
+        return sortedMissions.sort((a, b) => {
+          const typeA = (a.type || '').toLowerCase();
+          const typeB = (b.type || '').toLowerCase();
+          return typeA.localeCompare(typeB);
+        });
+      case 'default':
+      default:
+        return sortedMissions;
     }
   };
 
@@ -34,33 +57,34 @@ function Missions() {
   return (
     <div className="min-h-screen py-8" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="mafia-title text-5xl font-bold mb-10" style={{ color: 'var(--text-primary)' }}>Missions</h1>
+        {/* Header with Title and Sort Dropdown */}
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="mafia-title text-5xl font-bold" style={{ color: 'var(--text-primary)' }}>Missions</h1>
 
-        {missionsData && !missionsData.unlocked ? (
-          <div className="rounded-lg shadow-lg p-16 text-center border-2" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--accent-primary)' }}>
-            <div className="mb-8">
-              <svg className="w-32 h-32 mx-auto opacity-50" style={{ color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h2 className="text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-              Missions Locked
-            </h2>
-            <p className="text-2xl mb-3" style={{ color: 'var(--text-secondary)' }}>
-              {missionsData.message}
-            </p>
-            <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
-              Unlock Time: {missionsData.unlock_time}
-            </p>
-            <div className="mt-8 pt-8 border-t" style={{ borderColor: 'var(--border-color)' }}>
-              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                Current Day: Day {missionsData.day}
-              </p>
-            </div>
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-3">
+            <label className="text-lg font-semibold" style={{ color: 'var(--text-secondary)' }}>Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 rounded-lg border-2 text-lg font-medium cursor-pointer focus:outline-none focus:ring-2 transition"
+              style={{
+                backgroundColor: 'var(--bg-secondary)',
+                borderColor: 'var(--accent-primary)',
+                color: 'var(--text-primary)'
+              }}
+            >
+              <option value="default">Default</option>
+              <option value="high-to-low">Reward: High to Low</option>
+              <option value="low-to-high">Reward: Low to High</option>
+              <option value="type">Type</option>
+            </select>
           </div>
-        ) : missions && missions.length > 0 ? (
+        </div>
+
+        {missions && missions.length > 0 ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {missions.map((mission, index) => (
+            {getSortedMissions().map((mission, index) => (
               <div
                 key={index}
                 className="rounded-lg shadow-lg p-8 border-2 transition cursor-pointer"
