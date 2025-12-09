@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { tradeAPI } from '../services/api';
+import { tradeAPI, adminAPI } from '../services/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -10,46 +10,30 @@ function Trade() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isMarketOpen, setIsMarketOpen] = useState(false);
-  const [timeUntilOpen, setTimeUntilOpen] = useState('');
+  const [marketStatus, setMarketStatus] = useState(null);
+  const [nextOpening, setNextOpening] = useState('');
 
   useEffect(() => {
-    checkMarketStatus();
+    fetchMarketStatus();
     fetchOffers();
-
-    // Update market status every minute
-    const interval = setInterval(checkMarketStatus, 60000);
+    // Update status every 30 seconds
+    const interval = setInterval(fetchMarketStatus, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  const checkMarketStatus = () => {
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-    const istTime = new Date(now.getTime() + istOffset);
-    const hours = istTime.getUTCHours();
-    const minutes = istTime.getUTCMinutes();
-
-    // Black Market opens at 11:11 PM (23:11) IST
-    const isOpen = (hours === 23 && minutes >= 11) || (hours === 0 && minutes < 11);
-    setIsMarketOpen(isOpen);
-
-    if (!isOpen) {
-      // Calculate time until 11:11 PM IST
-      let targetHour = 23;
-      let targetMinute = 11;
-
-      let hoursUntil = targetHour - hours;
-      let minutesUntil = targetMinute - minutes;
-
-      if (minutesUntil < 0) {
-        hoursUntil--;
-        minutesUntil += 60;
-      }
-
-      if (hoursUntil < 0) {
-        hoursUntil += 24;
-      }
-
-      setTimeUntilOpen(`${hoursUntil}h ${minutesUntil}m`);
+  const fetchMarketStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/blackmarket/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      setMarketStatus(data);
+      setIsMarketOpen(data.is_open);
+      setNextOpening(data.next_opening);
+    } catch (error) {
+      console.error('Error fetching market status:', error);
     }
   };
 
@@ -113,24 +97,51 @@ function Trade() {
         <h1 className="mafia-title text-5xl font-bold mb-10" style={{ color: 'var(--text-primary)' }}>Black Market</h1>
 
         {/* Market Status Banner */}
-        <div className="rounded-lg shadow-lg p-6 mb-8 border-2" style={{
-          backgroundColor: isMarketOpen ? 'var(--success-bg)' : 'var(--error-bg)',
-          borderColor: isMarketOpen ? 'var(--success-text)' : 'var(--error-text)'
-        }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: isMarketOpen ? 'var(--success-text)' : 'var(--error-text)' }}>
-                {isMarketOpen ? '🟢 Market is OPEN' : '🔴 Market is CLOSED'}
+        {isMarketOpen && (
+          <div className="rounded-lg shadow-lg p-8 mb-8 border-4 animate-pulse" style={{
+            backgroundColor: '#1a4d2e',
+            borderColor: '#27ae60',
+            boxShadow: '0 0 30px rgba(39, 174, 96, 0.5)'
+          }}>
+            <div className="text-center">
+              <h2 className="text-6xl font-bold mb-4 tracking-wider" style={{ color: '#27ae60', textShadow: '0 0 20px rgba(39, 174, 96, 0.8)' }}>
+                🟢 BLACK MARKET OPENS 🟢
               </h2>
-              <p className="text-lg" style={{ color: isMarketOpen ? 'var(--success-text)' : 'var(--error-text)' }}>
-                {isMarketOpen
-                  ? 'The Black Market is now accepting transactions. Act fast!'
-                  : `Opens at 11:11 PM IST (in ${timeUntilOpen})`
-                }
+              <p className="text-3xl font-semibold mb-2" style={{ color: '#fff' }}>
+                The Black Market is NOW OPEN!
               </p>
+              <p className="text-xl" style={{ color: '#a8d5ba' }}>
+                Rare items available for 1 hour only. Act fast before they're gone!
+              </p>
+              {marketStatus?.manual_override && (
+                <p className="text-base mt-3 px-4 py-2 rounded inline-block" style={{
+                  backgroundColor: '#e67e22',
+                  color: '#fff'
+                }}>
+                  ⚠️ Manually Opened by Godfather
+                </p>
+              )}
             </div>
           </div>
-        </div>
+        )}
+
+        {!isMarketOpen && (
+          <div className="rounded-lg shadow-lg p-6 mb-8 border-2" style={{
+            backgroundColor: '#4d1a1a',
+            borderColor: '#c0392b'
+          }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2" style={{ color: '#c0392b' }}>
+                  🔴 Market is CLOSED
+                </h2>
+                <p className="text-lg" style={{ color: '#e74c3c' }}>
+                  Next Opening: {nextOpening}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error/Success Messages */}
         {error && (
@@ -157,7 +168,10 @@ function Trade() {
               Black Market Closed
             </h2>
             <p className="text-2xl mb-3" style={{ color: 'var(--text-secondary)' }}>
-              The Black Market opens every night at 11:11 PM IST
+              The Black Market opens at {marketStatus?.scheduled_hour}:00 IST every day
+            </p>
+            <p className="text-xl mb-2" style={{ color: 'var(--accent-primary)' }}>
+              Next Opening: {nextOpening}
             </p>
             <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
               Come back later to see exclusive deals on rare items
