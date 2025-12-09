@@ -25,7 +25,8 @@ function Trade() {
     try {
       const response = await fetch(`${API_BASE_URL}/blackmarket/status`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'ngrok-skip-browser-warning': 'true'
         }
       });
       const data = await response.json();
@@ -41,7 +42,8 @@ function Trade() {
     try {
       const response = await fetch(`${API_BASE_URL}/blackmarket/offers`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'ngrok-skip-browser-warning': 'true'
         }
       });
       const data = await response.json();
@@ -64,7 +66,8 @@ function Trade() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 
