@@ -140,7 +140,7 @@ function Login({ onLogin }) {
                 <option value="">Choose your role...</option>
                 <option value="Godfather">Godfather</option>
                 <option value="Don">Don</option>
-                <option value="Caporegime">Caporegime</option>
+                <option value="Capo">Caporegime (Capo)</option>
                 <option value="Detective">Detective</option>
                 <option value="Merchant">Merchant</option>
                 <option value="Doctor">Doctor</option>

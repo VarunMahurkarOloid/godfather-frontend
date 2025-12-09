@@ -135,6 +135,15 @@ export const adminAPI = {
 
   assignRole: (playerId, role, family, balance = 0) =>
     api.post('/admin/assign-role', { player_id: playerId, role, family, balance }),
+
+  getGameState: () =>
+    api.get('/admin/game-state'),
+
+  setGameDay: (day) =>
+    api.post('/admin/set-game-day', null, { params: { day } }),
+
+  setBlackMarketHour: (hour) =>
+    api.post('/admin/set-blackmarket-hour', null, { params: { hour } }),
 };
 
 export default api;

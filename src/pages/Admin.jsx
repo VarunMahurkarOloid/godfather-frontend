@@ -26,10 +26,12 @@ function Admin() {
   // Game control state
   const [gameDay, setGameDay] = useState(1);
   const [unlockHour, setUnlockHour] = useState(9);
+  const [blackMarketHour, setBlackMarketHour] = useState(22);
   const [gameState, setGameState] = useState(null);
 
   // Black Market state
   const [blackmarketOffers, setBlackmarketOffers] = useState([]);
+  const [blackmarketStatus, setBlackmarketStatus] = useState(null);
   const [offerItemName, setOfferItemName] = useState('');
   const [offerDescription, setOfferDescription] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
@@ -45,6 +47,7 @@ function Admin() {
     fetchMissions();
     fetchGameState();
     fetchBlackmarketOffers();
+    fetchBlackmarketStatus();
   }, []);
 
   const fetchPlayers = async () => {
@@ -86,6 +89,7 @@ function Admin() {
         setGameState(data);
         setGameDay(data.current_day);
         setUnlockHour(data.mission_unlock_hour);
+        setBlackMarketHour(data.black_market_hour || 22);
       }
     } catch (error) {
       console.error('Error fetching game state:', error);
@@ -105,6 +109,22 @@ function Admin() {
       }
     } catch (error) {
       console.error('Error fetching black market offers:', error);
+    }
+  };
+
+  const fetchBlackmarketStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/blackmarket/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBlackmarketStatus(data);
+      }
+    } catch (error) {
+      console.error('Error fetching black market status:', error);
     }
   };
 
@@ -169,6 +189,89 @@ function Admin() {
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to set unlock hour' });
+    }
+  };
+
+  const handleSetBlackMarketHour = async () => {
+    setMessage({ type: '', text: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/set-blackmarket-hour?hour=${blackMarketHour}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setMessage({ type: 'success', text: `Black Market opening hour set to ${blackMarketHour}:00!` });
+        fetchGameState();
+        fetchBlackmarketStatus();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to set black market hour');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Failed to set black market hour' });
+      console.error('Error setting black market hour:', error);
+    }
+  };
+
+  const handleForceOpenMarket = async () => {
+    setMessage({ type: '', text: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/toggle-blackmarket?force_open=true`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Black Market manually OPENED!' });
+        fetchBlackmarketStatus();
+      } else {
+        throw new Error('Failed to open black market');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to open black market' });
+    }
+  };
+
+  const handleForceCloseMarket = async () => {
+    setMessage({ type: '', text: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/toggle-blackmarket?force_open=false`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Black Market manually CLOSED!' });
+        fetchBlackmarketStatus();
+      } else {
+        throw new Error('Failed to close black market');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to close black market' });
+    }
+  };
+
+  const handleResetMarketSchedule = async () => {
+    setMessage({ type: '', text: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/reset-blackmarket-override`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Black Market returned to automatic schedule!' });
+        fetchBlackmarketStatus();
+      } else {
+        throw new Error('Failed to reset black market');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to reset black market schedule' });
     }
   };
 
@@ -781,7 +884,7 @@ function Admin() {
                   >
                     <option value="all">All Roles</option>
                     <option value="Don">Don</option>
-                    <option value="Caporegime">Caporegime</option>
+                    <option value="Capo">Caporegime (Capo)</option>
                     <option value="Detective">Detective</option>
                     <option value="Merchant">Merchant</option>
                     <option value="Doctor">Doctor</option>
@@ -904,20 +1007,24 @@ function Admin() {
                 <h3 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
                   Current Game State
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>Current Day:</p>
                     <p className="text-3xl font-bold" style={{ color: 'var(--accent-primary)' }}>Day {gameState.current_day}</p>
                   </div>
                   <div>
                     <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>Mission Unlock Time:</p>
-                    <p className="text-3xl font-bold" style={{ color: 'var(--accent-primary)' }}>{gameState.mission_unlock_hour}:00 AM</p>
+                    <p className="text-3xl font-bold" style={{ color: 'var(--accent-primary)' }}>{gameState.mission_unlock_hour}:00</p>
+                  </div>
+                  <div>
+                    <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>Black Market Opens:</p>
+                    <p className="text-3xl font-bold" style={{ color: 'var(--accent-primary)' }}>{gameState.black_market_hour}:00</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="grid gap-8 lg:grid-cols-2">
+            <div className="grid gap-8 lg:grid-cols-3">
               {/* Set Game Day */}
               <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                 <h3 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
@@ -989,6 +1096,42 @@ function Admin() {
                   </button>
                 </div>
               </div>
+
+              {/* Set Black Market Hour */}
+              <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                <h3 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Set Black Market Hour
+                </h3>
+                <p className="text-lg mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Set the time when Black Market opens (24-hour format)
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={blackMarketHour}
+                    onChange={(e) => setBlackMarketHour(parseInt(e.target.value))}
+                    className="px-4 py-3 rounded-lg text-xl font-bold w-24 text-center"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--accent-primary)',
+                      border: '2px solid'
+                    }}
+                  />
+                  <button
+                    onClick={handleSetBlackMarketHour}
+                    className="px-6 py-3 rounded-lg text-lg font-semibold transition"
+                    style={{
+                      backgroundColor: 'var(--accent-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  >
+                    Set {blackMarketHour}:00
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Instructions */}
@@ -998,6 +1141,7 @@ function Admin() {
               </h3>
               <ul className="space-y-2 text-lg" style={{ color: 'var(--text-secondary)' }}>
                 <li>• Set the mission unlock hour to control when missions become available each day</li>
+                <li>• Set the black market hour to control when the Black Market opens (runs for 1 hour)</li>
                 <li>• Set the game day to unlock missions for that specific day</li>
                 <li>• Players will only see missions matching their role and family</li>
                 <li>• Godfather/Admins always see all missions regardless of time</li>
@@ -1207,6 +1351,153 @@ function Admin() {
         {/* Black Market Tab */}
         {activeTab === 'blackmarket' && (
           <div>
+            {/* Black Market Timing Control */}
+            <div className="rounded-lg shadow-lg p-8 border-2 mb-8" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--accent-primary)' }}>
+              <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+                Black Market Settings
+              </h2>
+
+              {/* Current Status */}
+              {blackmarketStatus && (
+                <div className="mb-6 p-6 rounded-lg" style={{
+                  backgroundColor: blackmarketStatus.is_open ? '#1a4d2e' : '#4d1a1a',
+                  border: `2px solid ${blackmarketStatus.is_open ? '#27ae60' : '#c0392b'}`
+                }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-lg mb-2" style={{ color: 'var(--text-secondary)' }}>Current Status:</p>
+                      <p className="text-5xl font-bold" style={{
+                        color: blackmarketStatus.is_open ? '#27ae60' : '#c0392b'
+                      }}>
+                        {blackmarketStatus.is_open ? '🟢 OPEN' : '🔴 CLOSED'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg mb-2" style={{ color: 'var(--text-secondary)' }}>Next Opening:</p>
+                      <p className="text-2xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+                        {blackmarketStatus.next_opening}
+                      </p>
+                      {blackmarketStatus.manual_override !== null && (
+                        <p className="text-base mt-2 px-3 py-1 rounded inline-block" style={{
+                          backgroundColor: '#e67e22',
+                          color: '#fff'
+                        }}>
+                          ⚠️ MANUAL OVERRIDE ACTIVE
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Action - Announce & Open */}
+              <div className="mb-6 p-6 rounded-lg border-2" style={{
+                backgroundColor: '#1a4d2e',
+                borderColor: '#27ae60'
+              }}>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: '#27ae60' }}>
+                  🚀 Quick Action
+                </h3>
+                <p className="text-base mb-4" style={{ color: '#a8d5ba' }}>
+                  Instantly open the Black Market with the big announcement banner for all users
+                </p>
+                <button
+                  onClick={handleForceOpenMarket}
+                  className="w-full px-8 py-4 rounded-lg text-2xl font-bold transition shadow-lg"
+                  style={{
+                    backgroundColor: '#27ae60',
+                    color: '#fff',
+                    boxShadow: '0 0 20px rgba(39, 174, 96, 0.5)'
+                  }}
+                >
+                  🟢 ANNOUNCE "BLACK MARKET OPENS" 🟢
+                </button>
+              </div>
+
+              {/* Manual Override Controls */}
+              <div className="mb-6 p-6 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Manual Controls
+                </h3>
+                <p className="text-base mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Override the automatic schedule and manually open/close the Black Market
+                </p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleForceOpenMarket}
+                    className="flex-1 px-6 py-3 rounded-lg text-lg font-semibold transition"
+                    style={{
+                      backgroundColor: '#27ae60',
+                      color: '#fff'
+                    }}
+                  >
+                    🟢 Force OPEN
+                  </button>
+                  <button
+                    onClick={handleForceCloseMarket}
+                    className="flex-1 px-6 py-3 rounded-lg text-lg font-semibold transition"
+                    style={{
+                      backgroundColor: '#c0392b',
+                      color: '#fff'
+                    }}
+                  >
+                    🔴 Force CLOSE
+                  </button>
+                  <button
+                    onClick={handleResetMarketSchedule}
+                    className="flex-1 px-6 py-3 rounded-lg text-lg font-semibold transition"
+                    style={{
+                      backgroundColor: '#f39c12',
+                      color: '#fff'
+                    }}
+                  >
+                    🔄 Reset to Auto
+                  </button>
+                </div>
+              </div>
+
+              {/* Scheduled Opening Time */}
+              <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Set Scheduled Opening Hour
+                </h3>
+                <p className="text-base mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  Configure when the Black Market automatically opens each day (24-hour format, IST timezone)
+                </p>
+                {gameState && (
+                  <p className="text-base mb-3 p-2 rounded" style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
+                    Currently set to: <strong style={{ color: 'var(--accent-primary)' }}>{gameState.black_market_hour}:00 IST</strong> (stays open for 1 hour)
+                  </p>
+                )}
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    min="0"
+                    max="23"
+                    value={blackMarketHour}
+                    onChange={(e) => setBlackMarketHour(parseInt(e.target.value))}
+                    className="px-4 py-3 rounded-lg text-xl font-bold w-24 text-center"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--accent-primary)',
+                      border: '2px solid'
+                    }}
+                  />
+                  <button
+                    onClick={handleSetBlackMarketHour}
+                    className="px-6 py-3 rounded-lg text-lg font-semibold transition"
+                    style={{
+                      backgroundColor: 'var(--accent-primary)',
+                      color: 'var(--text-primary)'
+                    }}
+                  >
+                    Set {blackMarketHour}:00
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Create Offer Form */}
             <div className="rounded-lg shadow-lg p-8 border-2 mb-8" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--accent-primary)' }}>
               <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
@@ -1577,7 +1868,7 @@ function PlayerRow({ player, onUpdate, setMessage }) {
           >
             <option value="">Select role...</option>
             <option value="Don">Don</option>
-            <option value="Caporegime">Caporegime</option>
+            <option value="Capo">Caporegime (Capo)</option>
             <option value="Detective">Detective</option>
             <option value="Merchant">Merchant</option>
             <option value="Doctor">Doctor</option>
